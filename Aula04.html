@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lista</title>
+    <style>
+        body {
+            background: #f0f0f0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #lista {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 8px;
+            width: 75vw;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card img {
+            width: 80px;
+            border-radius: 4px;
+            flex-shrink: 0;
+        }
+
+        .card p {
+            margin: 4px 0;
+        }
+
+        #btn-atualizar{
+            display: block;
+            margin-left: auto;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="btn-atualizar">Atualizar</button>
+    <div id="lista"></div>
+    <script>
+        async function listarPais() {
+            const lista = document.getElementById('lista');
+
+            const carregando = document.createElement('p');
+            carregando.textContent = 'Carregando...';
+
+            lista.appendChild(carregando);
+
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            try {
+                const resposta = await fetch("https://restcountries.com/v3.1/all?fields=name,flags,capital,population");
+                const dados = await resposta.json();
+
+                    dados.slice(0, 20).forEach(pais => {
+                    const capital = pais.capital[0]
+
+                    const card = document.createElement('div');
+                    card.classList.add('card');
+
+                    const img = document.createElement('img');
+                    img.src = pais.flags.png;
+                    img.alt = pais.flags.alt;
+
+                    const info = document.createElement('div');
+
+                    const nomePais = document.createElement('p');
+                    nomePais.textContent = `Pais: ${pais.name.common}`;
+
+                    const capitalPais = document.createElement('p');
+                    capitalPais.textContent = `Capital: ${capital}`;
+
+                    const populacao = document.createElement('p');
+                    populacao.textContent = `Populacao: ${pais.population.toLocaleString('pt-BR')}`;
+
+                    info.appendChild(nomePais);
+                    info.appendChild(capitalPais);
+                    info.appendChild(populacao);
+
+                    card.appendChild(img);
+                    card.appendChild(info);
+
+                    lista.appendChild(card);
+                });
+
+            } catch (erro) {
+                lista.textContent = 'Erro ao carregar a lista 😢';
+                console.error(erro);
+            } finally {
+                carregando.remove();
+            }
+        }
+
+        function botaoAtualizar() {
+            const btn = document.getElementById('btn-atualizar');
+            btn.addEventListener('click', listarPais);
+        }
+
+        listarPais();
+        botaoAtualizar();
+
+    
+    </script>
+</body>
+
+</html>
