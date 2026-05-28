@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lista</title>
+    <title>Jogo de Adivinhação de Países</title>
     <style>
         body {
             background: #f0f0f0;
@@ -12,6 +12,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            font-family: Arial, sans-serif;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            text-align: center;
         }
 
         #lista {
@@ -27,7 +35,6 @@
             border-radius: 8px;
             padding: 12px;
             box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-            font-family: Arial, sans-serif;
             font-size: 14px;
             display: flex;
             align-items: center;
@@ -44,6 +51,13 @@
             margin: 4px 0;
         }
 
+        .tentativas {
+            font-size: 12px;
+            font-weight: bold;
+            color: #555;
+            margin-left: 6px;
+        }
+
         #btn-atualizar{
             display: block;
             margin-left: auto;
@@ -52,11 +66,13 @@
 </head>
 
 <body>
+    <h1>🌍 Jogo de Adivinhação de Países</h1>
     <button id="btn-atualizar">Atualizar</button>
     <div id="lista"></div>
     <script>
         async function listarPais() {
             const lista = document.getElementById('lista');
+            lista.innerHTML = '';
 
             const carregando = document.createElement('p');
             carregando.textContent = 'Carregando...';
@@ -69,7 +85,8 @@
                 const resposta = await fetch("https://restcountries.com/v3.1/all?fields=name,flags,capital,population");
                 const dados = await resposta.json();
 
-                dados.slice(0, 10).forEach(pais => {
+                const embaralhados = dados.filter(p => p.capital && p.capital.length > 0).sort(() => Math.random() - 0.5);
+                embaralhados.slice(0, 10).forEach(pais => {
                     let isDone = true
                     const capital = pais.capital[0]
 
@@ -90,6 +107,7 @@
 
                     let nomePais;
                     let paisNome;
+                    let contadorNome;
                     if (random % 2 === 0){
                         nomePais = document.createElement('p');
                         nomePais.textContent = `Pais: ${pais.name.common}`;
@@ -101,7 +119,11 @@
 
                         paisNome = document.createElement('button');
                         paisNome.textContent = "Tentar";
-                        
+
+                        contadorNome = document.createElement('span');
+                        contadorNome.classList.add('tentativas');
+                        contadorNome.textContent = '0/3';
+
                         isDone = false;
                         let tentativasRestantes = 3;
                         nomePais.addEventListener('keyup', (event) => {
@@ -117,9 +139,10 @@
                                         card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
                                     } else {
                                         tentativasRestantes--;
+                                        contadorNome.textContent = `${3 - tentativasRestantes}/3`;
                                     }
                                 }
-                            } 
+                            }
                             if (tentativasRestantes === 0) {
                                 nomePais.disabled = true;
                                 paisNome.disabled = true;
@@ -138,8 +161,9 @@
                                     card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
                                 } else {
                                     tentativasRestantes--;
+                                    contadorNome.textContent = `${3 - tentativasRestantes}/3`;
                                 }
-                            } 
+                            }
                             if (tentativasRestantes === 0) {
                                 nomePais.disabled = true;
                                 paisNome.disabled = true;
@@ -150,13 +174,16 @@
 
                     const divNomePais = document.createElement('div');
                     divNomePais.appendChild(nomePais);
-                    if (paisNome)
+                    if (paisNome) {
                         divNomePais.appendChild(paisNome);
+                        divNomePais.appendChild(contadorNome);
+                    }
 
                     info.appendChild(divNomePais);
 
                     let capitalPais;
                     let capitalNome;
+                    let contadorCapital;
                     if (!isDone) {
                         capitalPais = document.createElement('p');
                         capitalPais.textContent = `Capital: ${capital}`;
@@ -168,6 +195,11 @@
 
                         capitalNome = document.createElement('button');
                         capitalNome.textContent = "Tentar";
+
+                        contadorCapital = document.createElement('span');
+                        contadorCapital.classList.add('tentativas');
+                        contadorCapital.textContent = '0/3';
+
                         isDone = false;
                         let tentativasRestantes = 3;
                         //
@@ -184,9 +216,10 @@
                                         card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
                                     } else {
                                         tentativasRestantes--;
+                                        contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
                                     }
                                 }
-                            } 
+                            }
                             if (tentativasRestantes === 0) {
                                 capitalPais.disabled = true;
                                 capitalNome.disabled = true;
@@ -204,8 +237,9 @@
                                     card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
                                 } else {
                                     tentativasRestantes--;
+                                    contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
                                 }
-                            } 
+                            }
                             if (tentativasRestantes === 0) {
                                 capitalPais.disabled = true;
                                 capitalNome.disabled = true;
@@ -216,8 +250,10 @@
                     }
                     const divCapitalPais = document.createElement('div');
                     divCapitalPais.appendChild(capitalPais);
-                    if (capitalNome)
+                    if (capitalNome) {
                         divCapitalPais.appendChild(capitalNome);
+                        divCapitalPais.appendChild(contadorCapital);
+                    }
 
                     info.appendChild(divCapitalPais);
 
