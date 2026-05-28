@@ -128,25 +128,27 @@
                         let tentativasRestantes = 3;
                         nomePais.addEventListener('keyup', (event) => {
                             console.log("Event: ", event.key === "Enter");
-                            if (!nomePais.value){
-                                return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
-                            }
-                            if (tentativasRestantes > 0){
-                                if (event.key == "Enter"){
-                                    if (pais.name.common === nomePais.value){
-                                        nomePais.disabled = true;
-                                        paisNome.disabled = true;
-                                        card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                    } else {
-                                        tentativasRestantes--;
-                                        contadorNome.textContent = `${3 - tentativasRestantes}/3`;
+                            if (event.key === "Enter"){
+                                if (!nomePais.value){
+                                    return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
+                                }
+                                if (tentativasRestantes > 0){
+                                    if (event.key == "Enter"){
+                                        if (pais.name.common === nomePais.value){
+                                            nomePais.disabled = true;
+                                            paisNome.disabled = true;
+                                            card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                                        } else {
+                                            tentativasRestantes--;
+                                            contadorNome.textContent = `${3 - tentativasRestantes}/3`;
+                                        }
                                     }
                                 }
-                            }
-                            if (tentativasRestantes === 0) {
-                                nomePais.disabled = true;
-                                paisNome.disabled = true;
-                                card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                                if (tentativasRestantes === 0) {
+                                    nomePais.disabled = true;
+                                    paisNome.disabled = true;
+                                    card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                                }
                             }
                         });
                         paisNome.addEventListener('click', () => {
@@ -205,25 +207,27 @@
                         //
                         capitalPais.addEventListener('keyup', (event) => {
                             console.log("Event: ", event.key === "Enter");
-                            if (!capitalPais.value){
-                                return alert("Você deve colocar alguma coisa na capital para realizar a tentativa");
-                            }
-                            if (tentativasRestantes > 0){
-                                if (event.key == "Enter"){
-                                    if (capital === capitalPais.value){
-                                        capitalPais.disabled = true;
-                                        capitalNome.disabled = true;
-                                        card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                    } else {
-                                        tentativasRestantes--;
-                                        contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
+                            if (event.key === "Enter"){
+                                if (!capitalPais.value){
+                                    return alert("Você deve colocar alguma coisa na capital para realizar a tentativa");
+                                }
+                                if (tentativasRestantes > 0){
+                                    if (event.key == "Enter"){
+                                        if (capital === capitalPais.value){
+                                            capitalPais.disabled = true;
+                                            capitalNome.disabled = true;
+                                            card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                                        } else {
+                                            tentativasRestantes--;
+                                            contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
+                                        }
                                     }
                                 }
-                            }
-                            if (tentativasRestantes === 0) {
-                                capitalPais.disabled = true;
-                                capitalNome.disabled = true;
-                                card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                                if (tentativasRestantes === 0) {
+                                    capitalPais.disabled = true;
+                                    capitalNome.disabled = true;
+                                    card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
+                                }
                             }
                         });
                         capitalNome.addEventListener('click', () => {
