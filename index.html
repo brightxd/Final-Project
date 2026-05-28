@@ -97,6 +97,7 @@
                         nomePais = document.createElement('input');
                         nomePais.type = "text";
                         nomePais.placeholder = pais.name.common;//"Nome do Pais Aqui";
+                        nomePais.style.margin = "0px 10px 0px 0px";
 
                         paisNome = document.createElement('button');
                         paisNome.textContent = "Tentar";
@@ -158,6 +159,8 @@
                     if (paisNome)
                         divNomePais.appendChild(paisNome);
 
+                    info.appendChild(divNomePais);
+
                     let capitalPais;
                     let capitalNome;
                     if (!isDone) {
@@ -167,7 +170,8 @@
                         capitalPais = document.createElement('input');
                         capitalPais.type = "text";
                         capitalPais.placeholder = capital;//`Capital do Pais Aqui ${capital}`;
-                        
+                        capitalPais.style.margin = "0px 10px 0px 0px";
+
                         capitalNome = document.createElement('button');
                         capitalNome.textContent = "Tentar";
                         isDone = false;
@@ -227,22 +231,20 @@
                     if (capitalNome)
                         divCapitalPais.appendChild(capitalNome);
 
-                    let populacaoElemento;
-                    //let elementoPopulacao;
+                    info.appendChild(divCapitalPais);
+
+                    let populacaoPais;
+                    let paisPopulacao;
                     if (!isDone){
-                        populacaoElemento = document.createElement('p');
-                        populacaoElemento.textContent = `Populacao: ${pais.population.toLocaleString('pt-BR')}`;
+                        populacaoPais = document.createElement('p');
+                        populacaoPais.textContent = `Populacao: ${pais.population.toLocaleString('pt-BR')}`;
                     } else {
-                        populacaoInput = document.createElement('input');
-                        populacaoInput.type = "number";
-                        populacaoInput.placeholder = "População do Pais Aqui";
+                        paisPopulacao = document.createElement('input');
+                        paisPopulacao.type = "number";
+                        paisPopulacao.placeholder = pais.population.toLocaleString('pt-BR');
                         isDone = false;
                     }
-                    //const div
-
-                    info.appendChild(divNomePais);
-                    info.appendChild(divCapitalPais);
-                    info.appendChild(populacaoElemento);
+                    info.appendChild(populacaoPais);
 
                     card.appendChild(img);
                     card.appendChild(info);
@@ -250,9 +252,9 @@
                     lista.appendChild(card);
                 });
 
-            } catch (erro) {
+            } catch (err) {
                 lista.textContent = 'Erro ao carregar a lista 😢';
-                console.error(erro);
+                console.error(err);
             } finally {
                 carregando.remove();
             }
