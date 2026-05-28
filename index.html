@@ -96,7 +96,7 @@
                     } else {
                         nomePais = document.createElement('input');
                         nomePais.type = "text";
-                        nomePais.placeholder = pais.name.common;//"Nome do Pais Aqui";
+                        nomePais.placeholder = "Nome do Pais Aqui";
                         nomePais.style.margin = "0px 10px 0px 0px";
 
                         paisNome = document.createElement('button');
@@ -112,7 +112,6 @@
                             if (tentativasRestantes > 0){
                                 if (event.key == "Enter"){
                                     if (pais.name.common === nomePais.value){
-                                        alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
                                         nomePais.disabled = true;
                                         paisNome.disabled = true;
                                         card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
@@ -122,8 +121,6 @@
                                 }
                             } 
                             if (tentativasRestantes === 0) {
-                                //nomePais.style.color = "red";
-                                //nomePais.style.borderColor = "red";
                                 nomePais.disabled = true;
                                 paisNome.disabled = true;
                                 card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
@@ -134,21 +131,18 @@
                                 return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
                             }
                             if (tentativasRestantes > 0){
-                                if (event.key == "Enter"){
-                                    if (pais.name.common === nomePais.value){
-                                        alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
-                                        nomePais.disabled = true;
-                                        paisNome.disabled = true;
-                                        card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                    } else {
-                                        tentativasRestantes--;
-                                    }
+                                if (pais.name.common === nomePais.value){
+                                    alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
+                                    nomePais.disabled = true;
+                                    paisNome.disabled = true;
+                                    card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                                } else {
+                                    tentativasRestantes--;
                                 }
                             } 
                             if (tentativasRestantes === 0) {
-                                //nomePais.style.color = "red";
-                                //nomePais.style.borderColor = "red";
                                 nomePais.disabled = true;
+                                paisNome.disabled = true;
                                 card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
                             }
                         });
@@ -169,7 +163,7 @@
                     } else {
                         capitalPais = document.createElement('input');
                         capitalPais.type = "text";
-                        capitalPais.placeholder = capital;//`Capital do Pais Aqui ${capital}`;
+                        capitalPais.placeholder = `Capital do Pais Aqui`;
                         capitalPais.style.margin = "0px 10px 0px 0px";
 
                         capitalNome = document.createElement('button');
@@ -185,7 +179,6 @@
                             if (tentativasRestantes > 0){
                                 if (event.key == "Enter"){
                                     if (capital === capitalPais.value){
-                                        //alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
                                         capitalPais.disabled = true;
                                         capitalNome.disabled = true;
                                         card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
@@ -195,8 +188,6 @@
                                 }
                             } 
                             if (tentativasRestantes === 0) {
-                                //capitalPais.style.color = "red";
-                                //capitalPais.style.borderColor = "red";
                                 capitalPais.disabled = true;
                                 capitalNome.disabled = true;
                                 card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
@@ -207,21 +198,18 @@
                                 return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
                             }
                             if (tentativasRestantes > 0){
-                                if (event.key == "Enter"){
-                                    if (capital === capitalPais.value){
-                                        //alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
-                                        capitalPais.disabled = true;
-                                        capitalNome.disabled = true;
-                                        card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                    } else {
-                                        tentativasRestantes--;
-                                    }
+                                if (capital === capitalPais.value){
+                                    capitalPais.disabled = true;
+                                    capitalNome.disabled = true;
+                                    card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
+                                } else {
+                                    tentativasRestantes--;
                                 }
                             } 
                             if (tentativasRestantes === 0) {
-                                capitalPais.style.color = "red";
-                                capitalPais.style.borderColor = "red";
                                 capitalPais.disabled = true;
+                                capitalNome.disabled = true;
+                                card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
                             }
                         });
                         //
