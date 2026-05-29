@@ -6,184 +6,206 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Jogo de Adivinhação de Países</title>
   <link rel="stylesheet" href="style.css" />
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 
 <body>
   <div id="root"></div>
 
-  <script type="text/babel">
-    const { useState, useEffect, useRef, useCallback } = React;
-
+  <script>
     const MAX_TENTATIVAS = 3;
 
-    function CampoAdivinhacao({ rotulo, resposta, aoFinalizar }) {
-      const [valor, setValor] = useState('');
-      const [tentativas, setTentativas] = useState(0);
-      const [concluido, setConcluido] = useState(false);
-      const [aviso, setAviso] = useState('');
-      const inputRef = useRef(null);
+    let carregando = false;
 
-      useEffect(() => {
-        if (inputRef.current) inputRef.current.focus();
-      }, []);
+    function criarCampoAdivinhacao(rotulo, resposta, aoFinalizar) {
+      let tentativas = 0;
+      let concluido = false;
 
-      const acertou = concluido && valor.trim().toLowerCase() === resposta.toLowerCase();
-      const errou = tentativas >= MAX_TENTATIVAS && !acertou;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'campo';
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.placeholder = `${rotulo}...`;
+
+      const botao = document.createElement('button');
+      botao.textContent = 'Tentar';
+
+      const spanTentativas = document.createElement('span');
+      spanTentativas.className = 'tentativas';
+      spanTentativas.textContent = `0/${MAX_TENTATIVAS}`;
+
+      const spanAviso = document.createElement('span');
+      spanAviso.className = 'aviso';
 
       function verificar() {
-        if (!valor.trim()) {
-          setAviso(`Preencha o campo antes de tentar.`);
+        if (!input.value.trim()) {
+          spanAviso.textContent = 'Preencha o campo antes de tentar.';
           return;
         }
-        setAviso('');
+        spanAviso.textContent = '';
         if (concluido) return;
 
-        const novasTentativas = tentativas + 1;
-        setTentativas(novasTentativas);
+        tentativas++;
+        spanTentativas.textContent = `${tentativas}/${MAX_TENTATIVAS}`;
 
-        if (valor.trim().toLowerCase() === resposta.toLowerCase()) {
-          setConcluido(true);
+        if (input.value.trim().toLowerCase() === resposta.toLowerCase()) {
+          concluido = true;
+          wrapper.innerHTML = '';
+          const span = document.createElement('span');
+          span.className = 'resultado acerto';
+          span.textContent = `${rotulo}: ${resposta} ✓`;
+          wrapper.appendChild(span);
           aoFinalizar('acerto');
-        } else if (novasTentativas >= MAX_TENTATIVAS) {
-          setConcluido(true);
+        } else if (tentativas >= MAX_TENTATIVAS) {
+          concluido = true;
+          wrapper.innerHTML = '';
+          const span = document.createElement('span');
+          span.className = 'resultado erro';
+          span.textContent = `${rotulo}: ${resposta}`;
+          wrapper.appendChild(span);
           aoFinalizar('erro');
         }
       }
 
-      if (errou) {
-        return (
-          <div className="campo">
-            <span className="resultado erro">{rotulo}: {resposta}</span>
-          </div>
-        );
-      }
+      botao.addEventListener('click', verificar);
+      input.addEventListener('keyup', e => { if (e.key === 'Enter') verificar(); });
+      input.addEventListener('input', () => { spanAviso.textContent = ''; });
 
-      if (acertou) {
-        return (
-          <div className="campo">
-            <span className="resultado acerto">{rotulo}: {resposta} ✓</span>
-          </div>
-        );
-      }
+      wrapper.appendChild(input);
+      wrapper.appendChild(botao);
+      wrapper.appendChild(spanTentativas);
+      wrapper.appendChild(spanAviso);
 
-      return (
-        <div className="campo">
-          <input
-            ref={inputRef}
-            type="text"
-            placeholder={`${rotulo}...`}
-            value={valor}
-            onChange={e => { setValor(e.target.value); setAviso(''); }}
-            onKeyUp={e => e.key === 'Enter' && verificar()}
-            disabled={concluido}
-          />
-          <button onClick={verificar} disabled={concluido}>Tentar</button>
-          <span className="tentativas">{tentativas}/{MAX_TENTATIVAS}</span>
-          {aviso && <span className="aviso">{aviso}</span>}
-        </div>
-      );
+      setTimeout(() => input.focus(), 0);
+
+      return wrapper;
     }
 
-    function CartaoPais({ pais, adivinharNome, adivinharCapital }) {
-      const [estadoCartao, setEstadoCartao] = useState('');
+    function criarCartaoPais({ pais, adivinharNome, adivinharCapital }) {
       const capital = pais.capital[0];
 
-      return (
-        <div className={`card ${estadoCartao}`}>
-          <img src={pais.flags.png} alt={pais.flags.alt || pais.name.common} />
-          <div className="card-info">
-            {adivinharNome
-              ? <CampoAdivinhacao rotulo="País" resposta={pais.name.common} aoFinalizar={setEstadoCartao} />
-              : <span>País: {pais.name.common}</span>
-            }
-            {adivinharCapital
-              ? <CampoAdivinhacao rotulo="Capital" resposta={capital} aoFinalizar={setEstadoCartao} />
-              : <span>Capital: {capital}</span>
-            }
-            <span>População: {pais.population.toLocaleString('pt-BR')}</span>
-          </div>
-        </div>
-      );
+      const card = document.createElement('div');
+      card.className = 'card';
+
+      const img = document.createElement('img');
+      img.src = pais.flags.png;
+      img.alt = pais.flags.alt || pais.name.common;
+
+      const info = document.createElement('div');
+      info.className = 'card-info';
+
+      function aoFinalizar(resultado) {
+        card.className = `card ${resultado}`;
+      }
+
+      if (adivinharNome) {
+        info.appendChild(criarCampoAdivinhacao('País', pais.name.common, aoFinalizar));
+      } else {
+        const span = document.createElement('span');
+        span.textContent = `País: ${pais.name.common}`;
+        info.appendChild(span);
+      }
+
+      if (adivinharCapital) {
+        info.appendChild(criarCampoAdivinhacao('Capital', capital, aoFinalizar));
+      } else {
+        const span = document.createElement('span');
+        span.textContent = `Capital: ${capital}`;
+        info.appendChild(span);
+      }
+
+      const spanPop = document.createElement('span');
+      spanPop.textContent = `População: ${pais.population.toLocaleString('pt-BR')}`;
+      info.appendChild(spanPop);
+
+      card.appendChild(img);
+      card.appendChild(info);
+
+      return card;
     }
 
-    function App() {
-      const [paises, setPaises] = useState([]);
-      const [carregando, setCarregando] = useState(false);
-      const [erro, setErro] = useState('');
+    function renderizar(lista, erro) {
+      const root = document.getElementById('root');
+      root.innerHTML = '';
 
-      const carregarPaises = useCallback(async () => {
-        setCarregando(true);
-        setErro('');
-        setPaises([]);
+      const container = document.createElement('div');
+      container.className = 'container';
 
-        try {
-          const resposta = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population');
-          const dados = await resposta.json();
+      const cabecalho = document.createElement('div');
+      cabecalho.className = 'cabecalho';
 
-          const comCapital = dados.filter(p => p.capital && p.capital.length > 0);
-          const embaralhados = comCapital.sort(() => Math.random() - 0.5).slice(0, 10);
+      const h1 = document.createElement('h1');
+      h1.textContent = '🌍 Adivinhe o País';
 
-          const lista = embaralhados.map(pais => {
-            const numero = Math.floor(Math.random() * 100);
-            return {
-              pais,
-              adivinharNome: numero % 2 !== 0,
-              adivinharCapital: numero % 2 === 0,
-            };
-          });
+      const botaoNovo = document.createElement('button');
+      botaoNovo.textContent = carregando ? 'Carregando...' : 'Novo Jogo (N)';
+      botaoNovo.disabled = carregando;
+      botaoNovo.addEventListener('click', carregarPaises);
 
-          setPaises(lista);
-        } catch {
-          setErro('Erro ao carregar os países. Verifique sua conexão e tente novamente.');
-        } finally {
-          setCarregando(false);
-        }
-      }, []);
+      cabecalho.appendChild(h1);
+      cabecalho.appendChild(botaoNovo);
+      container.appendChild(cabecalho);
 
-      useEffect(() => { carregarPaises(); }, [carregarPaises]);
+      if (erro) {
+        const p = document.createElement('p');
+        p.className = 'mensagem mensagem-erro';
+        p.textContent = erro;
+        container.appendChild(p);
+      }
 
-      useEffect(() => {
-        function aoApertarTecla(evento) {
-          if (evento.key === 'n' && !carregando && evento.target.tagName !== 'INPUT') {
-            carregarPaises();
-          }
-        }
+      if (carregando) {
+        const p = document.createElement('p');
+        p.className = 'mensagem';
+        p.textContent = 'Carregando países...';
+        container.appendChild(p);
+      }
 
-        document.addEventListener('keydown', aoApertarTecla);
-        return () => document.removeEventListener('keydown', aoApertarTecla);
-      }, [carregando, carregarPaises]);
+      const listaEl = document.createElement('div');
+      listaEl.className = 'lista';
 
-      return (
-        <div className="container">
-          <div className="cabecalho">
-            <h1>🌍 Adivinhe o País</h1>
-            <button onClick={carregarPaises} disabled={carregando}>
-              {carregando ? 'Carregando...' : 'Novo Jogo (N)'}
-            </button>
-          </div>
+      for (const item of lista) {
+        listaEl.appendChild(criarCartaoPais(item));
+      }
 
-          {erro && <p className="mensagem mensagem-erro">{erro}</p>}
-          {carregando && <p className="mensagem">Carregando países...</p>}
-
-          <div className="lista">
-            {paises.map(({ pais, adivinharNome, adivinharCapital }) => (
-              <CartaoPais
-                key={pais.name.common}
-                pais={pais}
-                adivinharNome={adivinharNome}
-                adivinharCapital={adivinharCapital}
-              />
-            ))}
-          </div>
-        </div>
-      );
+      container.appendChild(listaEl);
+      root.appendChild(container);
     }
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
+    async function carregarPaises() {
+      carregando = true;
+      renderizar([], '');
+
+      try {
+        const resposta = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population');
+        const dados = await resposta.json();
+
+        const comCapital = dados.filter(p => p.capital && p.capital.length > 0);
+        const embaralhados = comCapital.sort(() => Math.random() - 0.5).slice(0, 10);
+
+        const lista = embaralhados.map(pais => {
+          const numero = Math.floor(Math.random() * 100);
+          return {
+            pais,
+            adivinharNome: numero % 2 !== 0,
+            adivinharCapital: numero % 2 === 0,
+          };
+        });
+
+        carregando = false;
+        renderizar(lista, '');
+      } catch {
+        carregando = false;
+        renderizar([], 'Erro ao carregar os países. Verifique sua conexão e tente novamente.');
+      }
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'n' && !carregando && e.target.tagName !== 'INPUT') {
+        carregarPaises();
+      }
+    });
+
+    carregarPaises();
   </script>
 </body>
 
