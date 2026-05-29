@@ -143,6 +143,12 @@ body {
   color: #888;
 }
 
+.aviso {
+  font-size: 12px;
+  color: #e65100;
+  width: 100%;
+}
+
 .resultado {
   font-size: 14px;
 }

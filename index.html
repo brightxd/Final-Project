@@ -15,23 +15,30 @@
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef } = React;
+    const { useState, useEffect, useRef, useCallback } = React;
 
     const MAX_TENTATIVAS = 3;
 
-    function CampoAdivinhacao({ rotulo, resposta, cartaoRef }) {
+    function CampoAdivinhacao({ rotulo, resposta, aoFinalizar }) {
       const [valor, setValor] = useState('');
       const [tentativas, setTentativas] = useState(0);
       const [concluido, setConcluido] = useState(false);
+      const [aviso, setAviso] = useState('');
+      const inputRef = useRef(null);
 
-      const acertou = concluido && tentativas <= MAX_TENTATIVAS && valor.trim().toLowerCase() === resposta.toLowerCase();
+      useEffect(() => {
+        if (inputRef.current) inputRef.current.focus();
+      }, []);
+
+      const acertou = concluido && valor.trim().toLowerCase() === resposta.toLowerCase();
       const errou = tentativas >= MAX_TENTATIVAS && !acertou;
 
       function verificar() {
         if (!valor.trim()) {
-          alert(`Preencha o campo ${rotulo} antes de tentar.`);
+          setAviso(`Preencha o campo antes de tentar.`);
           return;
         }
+        setAviso('');
         if (concluido) return;
 
         const novasTentativas = tentativas + 1;
@@ -39,15 +46,11 @@
 
         if (valor.trim().toLowerCase() === resposta.toLowerCase()) {
           setConcluido(true);
-          cartaoRef.current = 'acerto';
+          aoFinalizar('acerto');
         } else if (novasTentativas >= MAX_TENTATIVAS) {
           setConcluido(true);
-          cartaoRef.current = 'erro';
+          aoFinalizar('erro');
         }
-      }
-
-      function aoApertarTecla(evento) {
-        if (evento.key === 'Enter') verificar();
       }
 
       if (errou) {
@@ -69,32 +72,23 @@
       return (
         <div className="campo">
           <input
+            ref={inputRef}
             type="text"
             placeholder={`${rotulo}...`}
             value={valor}
-            onChange={e => setValor(e.target.value)}
-            onKeyUp={aoApertarTecla}
+            onChange={e => { setValor(e.target.value); setAviso(''); }}
+            onKeyUp={e => e.key === 'Enter' && verificar()}
             disabled={concluido}
           />
           <button onClick={verificar} disabled={concluido}>Tentar</button>
           <span className="tentativas">{tentativas}/{MAX_TENTATIVAS}</span>
+          {aviso && <span className="aviso">{aviso}</span>}
         </div>
       );
     }
 
     function CartaoPais({ pais, adivinharNome, adivinharCapital }) {
       const [estadoCartao, setEstadoCartao] = useState('');
-      const cartaoRef = useRef('');
-
-      useEffect(() => {
-        const intervalo = setInterval(() => {
-          if (cartaoRef.current !== estadoCartao) {
-            setEstadoCartao(cartaoRef.current);
-          }
-        }, 200);
-        return () => clearInterval(intervalo);
-      }, [estadoCartao]);
-
       const capital = pais.capital[0];
 
       return (
@@ -102,11 +96,11 @@
           <img src={pais.flags.png} alt={pais.flags.alt || pais.name.common} />
           <div className="card-info">
             {adivinharNome
-              ? <CampoAdivinhacao rotulo="País" resposta={pais.name.common} cartaoRef={cartaoRef} />
+              ? <CampoAdivinhacao rotulo="País" resposta={pais.name.common} aoFinalizar={setEstadoCartao} />
               : <span>País: {pais.name.common}</span>
             }
             {adivinharCapital
-              ? <CampoAdivinhacao rotulo="Capital" resposta={capital} cartaoRef={cartaoRef} />
+              ? <CampoAdivinhacao rotulo="Capital" resposta={capital} aoFinalizar={setEstadoCartao} />
               : <span>Capital: {capital}</span>
             }
             <span>População: {pais.population.toLocaleString('pt-BR')}</span>
@@ -120,7 +114,7 @@
       const [carregando, setCarregando] = useState(false);
       const [erro, setErro] = useState('');
 
-      async function carregarPaises() {
+      const carregarPaises = useCallback(async () => {
         setCarregando(true);
         setErro('');
         setPaises([]);
@@ -147,16 +141,27 @@
         } finally {
           setCarregando(false);
         }
-      }
+      }, []);
 
-      useEffect(() => { carregarPaises(); }, []);
+      useEffect(() => { carregarPaises(); }, [carregarPaises]);
+
+      useEffect(() => {
+        function aoApertarTecla(evento) {
+          if (evento.key === 'n' && !carregando && evento.target.tagName !== 'INPUT') {
+            carregarPaises();
+          }
+        }
+
+        document.addEventListener('keydown', aoApertarTecla);
+        return () => document.removeEventListener('keydown', aoApertarTecla);
+      }, [carregando, carregarPaises]);
 
       return (
         <div className="container">
           <div className="cabecalho">
             <h1>🌍 Adivinhe o País</h1>
             <button onClick={carregarPaises} disabled={carregando}>
-              {carregando ? 'Carregando...' : 'Novo Jogo'}
+              {carregando ? 'Carregando...' : 'Novo Jogo (N)'}
             </button>
           </div>
 
