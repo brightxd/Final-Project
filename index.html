@@ -2,302 +2,184 @@
 <html lang="pt-BR">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jogo de Adivinhação de Países</title>
-    <style>
-        body {
-            background: #f0f0f0;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            font-family: Arial, sans-serif;
-        }
-
-        h1 {
-            font-size: 28px;
-            color: #2c3e50;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-
-        #lista {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            gap: 8px;
-            width: 75vw;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 2px 4px 8px rgba(0,0,0,0.3);
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .card img {
-            width: 80px;
-            border-radius: 4px;
-            flex-shrink: 0;
-        }
-
-        .card p {
-            margin: 4px 0;
-        }
-
-        .tentativas {
-            font-size: 12px;
-            font-weight: bold;
-            color: #555;
-            margin-left: 6px;
-        }
-
-        #btn-atualizar{
-            display: block;
-            margin-left: auto;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jogo de Adivinhação de Países</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 
 <body>
-    <h1>🌍 Jogo de Adivinhação de Países</h1>
-    <button id="btn-atualizar">Atualizar</button>
-    <div id="lista"></div>
-    <script>
-        async function listarPais() {
-            const lista = document.getElementById('lista');
-            lista.innerHTML = '';
+  <div id="root"></div>
 
-            const carregando = document.createElement('p');
-            carregando.textContent = 'Carregando...';
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
 
-            lista.appendChild(carregando);
+    const MAX_TENTATIVAS = 3;
 
-            await new Promise(resolve => setTimeout(resolve));
+    function CampoAdivinhacao({ rotulo, resposta, cartaoRef }) {
+      const [valor, setValor] = useState('');
+      const [tentativas, setTentativas] = useState(0);
+      const [concluido, setConcluido] = useState(false);
 
-            try {
-                const resposta = await fetch("https://restcountries.com/v3.1/all?fields=name,flags,capital,population");
-                const dados = await resposta.json();
+      const acertou = concluido && tentativas <= MAX_TENTATIVAS && valor.trim().toLowerCase() === resposta.toLowerCase();
+      const errou = tentativas >= MAX_TENTATIVAS && !acertou;
 
-                const embaralhados = dados.filter(p => p.capital && p.capital.length > 0).sort(() => Math.random() - 0.5);
-                embaralhados.slice(0, 10).forEach(pais => {
-                    let isDone = true
-                    const capital = pais.capital[0]
+      function verificar() {
+        if (!valor.trim()) {
+          alert(`Preencha o campo ${rotulo} antes de tentar.`);
+          return;
+        }
+        if (concluido) return;
 
-                    const card = document.createElement('div');
-                    card.classList.add('card');
+        const novasTentativas = tentativas + 1;
+        setTentativas(novasTentativas);
 
-                    const img = document.createElement('img');
-                    let random = Math.floor(Math.random() * dados.length) + 1;
-                    //console.log("Random: ", random);
-                    //console.log("Is Even: ", random % 2 === 0);
-                    //if (random % 2 === 0){
-                        img.src = pais.flags.png;
-                        img.alt = pais.flags.alt;
-                        //isDone = false;
-                    //}
+        if (valor.trim().toLowerCase() === resposta.toLowerCase()) {
+          setConcluido(true);
+          cartaoRef.current = 'acerto';
+        } else if (novasTentativas >= MAX_TENTATIVAS) {
+          setConcluido(true);
+          cartaoRef.current = 'erro';
+        }
+      }
 
-                    const info = document.createElement('div');
+      function aoApertarTecla(evento) {
+        if (evento.key === 'Enter') verificar();
+      }
 
-                    let nomePais;
-                    let paisNome;
-                    let contadorNome;
-                    if (random % 2 === 0){
-                        nomePais = document.createElement('p');
-                        nomePais.textContent = `Pais: ${pais.name.common}`;
-                    } else {
-                        nomePais = document.createElement('input');
-                        nomePais.type = "text";
-                        nomePais.placeholder = "Nome do Pais Aqui";
-                        nomePais.style.margin = "0px 10px 0px 0px";
+      if (errou) {
+        return (
+          <div className="campo">
+            <span className="resultado erro">{rotulo}: {resposta}</span>
+          </div>
+        );
+      }
 
-                        paisNome = document.createElement('button');
-                        paisNome.textContent = "Tentar";
+      if (acertou) {
+        return (
+          <div className="campo">
+            <span className="resultado acerto">{rotulo}: {resposta} ✓</span>
+          </div>
+        );
+      }
 
-                        contadorNome = document.createElement('span');
-                        contadorNome.classList.add('tentativas');
-                        contadorNome.textContent = '0/3';
+      return (
+        <div className="campo">
+          <input
+            type="text"
+            placeholder={`${rotulo}...`}
+            value={valor}
+            onChange={e => setValor(e.target.value)}
+            onKeyUp={aoApertarTecla}
+            disabled={concluido}
+          />
+          <button onClick={verificar} disabled={concluido}>Tentar</button>
+          <span className="tentativas">{tentativas}/{MAX_TENTATIVAS}</span>
+        </div>
+      );
+    }
 
-                        isDone = false;
-                        let tentativasRestantes = 3;
-                        nomePais.addEventListener('keyup', (event) => {
-                            console.log("Event: ", event.key === "Enter");
-                            if (event.key === "Enter"){
-                                if (!nomePais.value){
-                                    return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
-                                }
-                                if (tentativasRestantes > 0){
-                                    if (event.key == "Enter"){
-                                        if (pais.name.common === nomePais.value){
-                                            nomePais.disabled = true;
-                                            paisNome.disabled = true;
-                                            card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                        } else {
-                                            tentativasRestantes--;
-                                            contadorNome.textContent = `${3 - tentativasRestantes}/3`;
-                                        }
-                                    }
-                                }
-                                if (tentativasRestantes === 0) {
-                                    nomePais.disabled = true;
-                                    paisNome.disabled = true;
-                                    card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                                }
-                            }
-                        });
-                        paisNome.addEventListener('click', () => {
-                            if (!nomePais.value){
-                                return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
-                            }
-                            if (tentativasRestantes > 0){
-                                if (pais.name.common === nomePais.value){
-                                    alert(`Acertou miseravel com ${tentativasRestantes} tentativas restantes`)
-                                    nomePais.disabled = true;
-                                    paisNome.disabled = true;
-                                    card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                } else {
-                                    tentativasRestantes--;
-                                    contadorNome.textContent = `${3 - tentativasRestantes}/3`;
-                                }
-                            }
-                            if (tentativasRestantes === 0) {
-                                nomePais.disabled = true;
-                                paisNome.disabled = true;
-                                card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                            }
-                        });
-                    }
+    function CartaoPais({ pais, adivinharNome, adivinharCapital }) {
+      const [estadoCartao, setEstadoCartao] = useState('');
+      const cartaoRef = useRef('');
 
-                    const divNomePais = document.createElement('div');
-                    divNomePais.appendChild(nomePais);
-                    if (paisNome) {
-                        divNomePais.appendChild(paisNome);
-                        divNomePais.appendChild(contadorNome);
-                    }
+      useEffect(() => {
+        const intervalo = setInterval(() => {
+          if (cartaoRef.current !== estadoCartao) {
+            setEstadoCartao(cartaoRef.current);
+          }
+        }, 200);
+        return () => clearInterval(intervalo);
+      }, [estadoCartao]);
 
-                    info.appendChild(divNomePais);
+      const capital = pais.capital[0];
 
-                    let capitalPais;
-                    let capitalNome;
-                    let contadorCapital;
-                    if (!isDone) {
-                        capitalPais = document.createElement('p');
-                        capitalPais.textContent = `Capital: ${capital}`;
-                    } else {
-                        capitalPais = document.createElement('input');
-                        capitalPais.type = "text";
-                        capitalPais.placeholder = `Capital do Pais Aqui`;
-                        capitalPais.style.margin = "0px 10px 0px 0px";
-
-                        capitalNome = document.createElement('button');
-                        capitalNome.textContent = "Tentar";
-
-                        contadorCapital = document.createElement('span');
-                        contadorCapital.classList.add('tentativas');
-                        contadorCapital.textContent = '0/3';
-
-                        isDone = false;
-                        let tentativasRestantes = 3;
-                        //
-                        capitalPais.addEventListener('keyup', (event) => {
-                            console.log("Event: ", event.key === "Enter");
-                            if (event.key === "Enter"){
-                                if (!capitalPais.value){
-                                    return alert("Você deve colocar alguma coisa na capital para realizar a tentativa");
-                                }
-                                if (tentativasRestantes > 0){
-                                    if (event.key == "Enter"){
-                                        if (capital === capitalPais.value){
-                                            capitalPais.disabled = true;
-                                            capitalNome.disabled = true;
-                                            card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                        } else {
-                                            tentativasRestantes--;
-                                            contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
-                                        }
-                                    }
-                                }
-                                if (tentativasRestantes === 0) {
-                                    capitalPais.disabled = true;
-                                    capitalNome.disabled = true;
-                                    card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                                }
-                            }
-                        });
-                        capitalNome.addEventListener('click', () => {
-                            if (!capitalPais.value){
-                                return alert("Você deve colocar alguma coisa no nome para realizar a tentativa");
-                            }
-                            if (tentativasRestantes > 0){
-                                if (capital === capitalPais.value){
-                                    capitalPais.disabled = true;
-                                    capitalNome.disabled = true;
-                                    card.style.backgroundColor = "rgba(0, 255, 0, 0.5)";
-                                } else {
-                                    tentativasRestantes--;
-                                    contadorCapital.textContent = `${3 - tentativasRestantes}/3`;
-                                }
-                            }
-                            if (tentativasRestantes === 0) {
-                                capitalPais.disabled = true;
-                                capitalNome.disabled = true;
-                                card.style.backgroundColor = "rgba(255, 0, 0, 0.5)";
-                            }
-                        });
-                        //
-                    }
-                    const divCapitalPais = document.createElement('div');
-                    divCapitalPais.appendChild(capitalPais);
-                    if (capitalNome) {
-                        divCapitalPais.appendChild(capitalNome);
-                        divCapitalPais.appendChild(contadorCapital);
-                    }
-
-                    info.appendChild(divCapitalPais);
-
-                    let populacaoPais;
-                    let paisPopulacao;
-                    if (!isDone){
-                        populacaoPais = document.createElement('p');
-                        populacaoPais.textContent = `Populacao: ${pais.population.toLocaleString('pt-BR')}`;
-                    } else {
-                        paisPopulacao = document.createElement('input');
-                        paisPopulacao.type = "number";
-                        paisPopulacao.placeholder = pais.population.toLocaleString('pt-BR');
-                        isDone = false;
-                    }
-                    info.appendChild(populacaoPais);
-
-                    card.appendChild(img);
-                    card.appendChild(info);
-
-                    lista.appendChild(card);
-                });
-
-            } catch (err) {
-                lista.textContent = 'Erro ao carregar a lista 😢';
-                console.error(err);
-            } finally {
-                carregando.remove();
+      return (
+        <div className={`card ${estadoCartao}`}>
+          <img src={pais.flags.png} alt={pais.flags.alt || pais.name.common} />
+          <div className="card-info">
+            {adivinharNome
+              ? <CampoAdivinhacao rotulo="País" resposta={pais.name.common} cartaoRef={cartaoRef} />
+              : <span>País: {pais.name.common}</span>
             }
+            {adivinharCapital
+              ? <CampoAdivinhacao rotulo="Capital" resposta={capital} cartaoRef={cartaoRef} />
+              : <span>Capital: {capital}</span>
+            }
+            <span>População: {pais.population.toLocaleString('pt-BR')}</span>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [paises, setPaises] = useState([]);
+      const [carregando, setCarregando] = useState(false);
+      const [erro, setErro] = useState('');
+
+      async function carregarPaises() {
+        setCarregando(true);
+        setErro('');
+        setPaises([]);
+
+        try {
+          const resposta = await fetch('https://restcountries.com/v3.1/all?fields=name,flags,capital,population');
+          const dados = await resposta.json();
+
+          const comCapital = dados.filter(p => p.capital && p.capital.length > 0);
+          const embaralhados = comCapital.sort(() => Math.random() - 0.5).slice(0, 10);
+
+          const lista = embaralhados.map(pais => {
+            const numero = Math.floor(Math.random() * 100);
+            return {
+              pais,
+              adivinharNome: numero % 2 !== 0,
+              adivinharCapital: numero % 2 === 0,
+            };
+          });
+
+          setPaises(lista);
+        } catch {
+          setErro('Erro ao carregar os países. Verifique sua conexão e tente novamente.');
+        } finally {
+          setCarregando(false);
         }
+      }
 
-        function botaoAtualizar() {
-            const btn = document.getElementById('btn-atualizar');
-            btn.addEventListener('click', listarPais);
-        }
+      useEffect(() => { carregarPaises(); }, []);
 
-        listarPais();
-        botaoAtualizar();
+      return (
+        <div className="container">
+          <div className="cabecalho">
+            <h1>🌍 Adivinhe o País</h1>
+            <button onClick={carregarPaises} disabled={carregando}>
+              {carregando ? 'Carregando...' : 'Novo Jogo'}
+            </button>
+          </div>
 
-    
-    </script>
+          {erro && <p className="mensagem mensagem-erro">{erro}</p>}
+          {carregando && <p className="mensagem">Carregando países...</p>}
+
+          <div className="lista">
+            {paises.map(({ pais, adivinharNome, adivinharCapital }) => (
+              <CartaoPais
+                key={pais.name.common}
+                pais={pais}
+                adivinharNome={adivinharNome}
+                adivinharCapital={adivinharCapital}
+              />
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 
 </html>
